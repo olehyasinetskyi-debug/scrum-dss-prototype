@@ -1,3 +1,8 @@
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://olehyasinetskyi-debug.github.io/scrum-dss-prototype)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17288286.svg)](https://doi.org/10.5281/zenodo.17288286)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/olehyasinetskyi-debug/scrum-dss-prototype)](https://github.com/olehyasinetskyi-debug/scrum-dss-prototype/releases)
+
 # Decision Support System for Scrum Projects
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://[your-username].github.io/scrum-dss-prototype)
