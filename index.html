@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSS for Predicting Sprint Delay Risks in Scrum</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            color: #495057;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .velocity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .velocity-table th,
+        .velocity-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+        
+        .velocity-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .velocity-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .result-card {
+            padding: 20px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #667eea;
+        }
+        
+        .result-card h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        
+        .result-card .value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .risk-indicator {
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        
+        .risk-medium {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+        
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        
+        .recommendation {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .recommendation h4 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        .recommendation ul {
+            margin-left: 20px;
+            color: #495057;
+        }
+        
+        .recommendation li {
+            margin-bottom: 8px;
+        }
+        
+        .instructions-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+        
+        .instructions-list ol {
+            margin-left: 20px;
+        }
+        
+        .instructions-list li {
+            margin-bottom: 15px;
+            color: #495057;
+            line-height: 1.6;
+        }
+        
+        .formula {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Decision Support System</h1>
+            <p>Risk prediction system for sprint delays in Scrum projects based on velocity statistical analysis</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('instructions')">📖 Instructions</button>
+            <button class="tab" onclick="showTab('input')">📝 Input</button>
+            <button class="tab" onclick="showTab('history')">📈 History</button>
+            <button class="tab" onclick="showTab('results')">📊 Results</button>
+            <button class="tab" onclick="showTab('recommendations')">💡 Recommendations</button>
+        </div>
+        
+        <div class="content">
+            <!-- INSTRUCTIONS -->
+            <div id="instructions" class="tab-content active">
+                <div class="section">
+                    <h3>How to Use the DSS System</h3>
+                    <div class="instructions-list">
+                        <ol>
+                            <li>
+                                <strong>Step 1: Fill in the "Input" tab</strong>
+                                <p>Enter current sprint parameters: sprint duration, current day, planned Story Points, and completed Story Points.</p>
+                            </li>
+                            <li>
+                                <strong>Step 2: Add historical data</strong>
+                                <p>In the "History" tab, add velocity data from previous sprints. The more data, the more accurate the forecast.</p>
+                            </li>
+                            <li>
+                                <strong>Step 3: View results</strong>
+                                <p>The system automatically calculates forecasts, prediction intervals, and deviations from the plan.</p>
+                            </li>
+                            <li>
+                                <strong>Step 4: Get recommendations</strong>
+                                <p>Based on calculations, the system provides recommendations for risk management actions.</p>
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <h3 style="margin-top: 30px;">Key Model Formulas</h3>
+                    <div class="instructions-list">
+                        <p><strong>Average velocity (SP/sprint):</strong></p>
+                        <div class="formula">V_avg = Σ V_i / n</div>
+                        
+                        <p><strong>Standard deviation (SP/sprint):</strong></p>
+                        <div class="formula">s = √[Σ(V_i - V_avg)² / (n-1)]</div>
+                        
+                        <p><strong>Current velocity (SP/day):</strong></p>
+                        <div class="formula">V_day = CompletedSP / CurrentDay</div>
+                        
+                        <p><strong>Forecast (current pace):</strong></p>
+                        <div class="formula">ForecastSP_current = V_day × SprintLength</div>
+                        
+                        <p><strong>Forecast (history):</strong></p>
+                        <div class="formula">ForecastSP_hist = V_avg</div>
+                        
+                        <p><strong>Mixed forecast (recommended):</strong></p>
+                        <div class="formula">w = CurrentDay / SprintLength<br>ForecastSP = w × ForecastSP_current + (1 - w) × ForecastSP_hist</div>
+                        
+                        <p><strong>95% prediction interval (for historical forecast):</strong></p>
+                        <div class="formula">PI_lower = V_avg - t<sub>0.975,n-1</sub> × s × √(1 + 1/n)<br>PI_upper = V_avg + t<sub>0.975,n-1</sub> × s × √(1 + 1/n)</div>
+                        
+                        <p><strong>Weight of current pace:</strong></p>
+                        <div class="formula">w = CurrentDay / SprintLength</div>
+                        
+                        <p><strong>Deviation from plan:</strong></p>
+                        <div class="formula">Deviation = PlannedSP - ForecastSP<br><em style="font-size: 0.9em;">(positive value = falling behind, negative = ahead of schedule)</em></div>
+                        
+                        <p style="margin-top: 15px; color: #6c757d; font-size: 0.9em;">
+                            <em><strong>Notes:</strong></em><br>
+                            • Mixed forecast combines current sprint data with historical statistics.<br>
+                            • PI (Prediction Interval) is wider than confidence interval for the mean.<br>
+                            • For reliable forecasts, a minimum of 5-8 sprints of history is recommended.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- INPUT -->
+            <div id="input" class="tab-content">
+                <div class="section">
+                    <h3>Current Sprint Parameters</h3>
+                    <div class="input-group">
+                        <label>Sprint Length (days):</label>
+                        <input type="number" id="sprintLength" value="10" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Current Day of Sprint:</label>
+                        <input type="number" id="currentDay" value="5" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Planned Story Points:</label>
+                        <input type="number" id="plannedSP" value="26" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Completed Story Points:</label>
+                        <input type="number" id="completedSP" value="11" min="0">
+                    </div>
+                    <button class="btn" onclick="calculate()">Calculate Forecast</button>
+                </div>
+            </div>
+            
+            <!-- HISTORY -->
+            <div id="history" class="tab-content">
+                <div class="section">
+                    <h3>Historical Velocity Data</h3>
+                    <div class="input-group">
+                        <label>Add Sprint:</label>
+                        <input type="number" id="newVelocity" placeholder="Velocity (Story Points)" min="0">
+                        <button class="btn" onclick="addVelocity()" style="margin-top: 10px;">Add</button>
+                    </div>
+                    <table class="velocity-table">
+                        <thead>
+                            <tr>
+                                <th>Sprint</th>
+                                <th>Velocity (SP)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="velocityTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- RESULTS -->
+            <div id="results" class="tab-content">
+                <div class="section">
+                    <h3>Statistical Analysis</h3>
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h4>Average Velocity (history)</h4>
+                            <div class="value" id="avgVelocity">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">SP/sprint</p>
+                        </div>
+                        <div class="result-card">
+                            <h4>Standard Deviation</h4>
+                            <div class="value" id="stdDev">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">SP/sprint</p>
+                        </div>
+                        <div class="result-card">
+                            <h4>Current Velocity</h4>
+                            <div class="value" id="currentVelocity">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">SP/day</p>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 30px;">Forecasts</h3>
+                    <div class="results-grid">
+                        <div class="result-card" style="border-left: 4px solid #28a745;">
+                            <h4>Forecast (current pace)</h4>
+                            <div class="value" id="forecastCurrent">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">Story Points</p>
+                        </div>
+                        <div class="result-card" style="border-left: 4px solid #17a2b8;">
+                            <h4>Forecast (history)</h4>
+                            <div class="value" id="forecastHist">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">Story Points</p>
+                        </div>
+                        <div class="result-card" style="border-left: 4px solid #fd7e14;">
+                            <h4>Mixed Forecast ⭐</h4>
+                            <div class="value" id="forecastMixed">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">Story Points (recommended)</p>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 30px;">95% Prediction Interval</h3>
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h4>Lower Bound (PI)</h4>
+                            <div class="value" id="piLower">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">Story Points</p>
+                        </div>
+                        <div class="result-card">
+                            <h4>Upper Bound (PI)</h4>
+                            <div class="value" id="piUpper">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">Story Points</p>
+                        </div>
+                    </div>
+                    
+                    <div class="results-grid" style="margin-top: 20px;">
+                        <div class="result-card">
+                            <h4>Deviation from Plan</h4>
+                            <div class="value" id="deviation">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">Story Points (PlannedSP - ForecastSP)</p>
+                        </div>
+                        <div class="result-card">
+                            <h4>Weight of Current Pace</h4>
+                            <div class="value" id="weight">-</div>
+                            <p style="margin-top: 10px; color: #6c757d;">Proportion of mixed forecast</p>
+                        </div>
+                    </div>
+                    
+                    <div id="riskIndicator" class="risk-indicator">
+                        Run calculation to determine risk level
+                    </div>
+                </div>
+            </div>
+            
+            <!-- RECOMMENDATIONS -->
+            <div id="recommendations" class="tab-content">
+                <div class="section">
+                    <h3>Project Manager Recommendations</h3>
+                    <div id="recommendationContent">
+                        <p style="color: #6c757d;">Run calculation to get recommendations...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let velocityHistory = [24.6, 22.0, 26.5, 28.0, 23.5, 25.0, 24.0, 26.0];
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'history') {
+                renderVelocityTable();
+            }
+        }
+        
+        function renderVelocityTable() {
+            const tbody = document.getElementById('velocityTableBody');
+            tbody.innerHTML = '';
+            
+            velocityHistory.forEach((velocity, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>Sprint ${index + 1}</td>
+                    <td>${velocity.toFixed(1)}</td>
+                    <td><button onclick="removeVelocity(${index})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button></td>
+                `;
+            });
+        }
+        
+        function addVelocity() {
+            const input = document.getElementById('newVelocity');
+            const value = parseFloat(input.value);
+            
+            if (value && value > 0) {
+                velocityHistory.push(value);
+                input.value = '';
+                renderVelocityTable();
+            } else {
+                alert('Please enter a valid velocity value');
+            }
+        }
+        
+        function removeVelocity(index) {
+            velocityHistory.splice(index, 1);
+            renderVelocityTable();
+        }
+        
+        function calculate() {
+            if (velocityHistory.length === 0) {
+                alert('Add historical velocity data before calculation');
+                return;
+            }
+            
+            const sprintLength = parseFloat(document.getElementById('sprintLength').value);
+            const currentDay = parseFloat(document.getElementById('currentDay').value);
+            const plannedSP = parseFloat(document.getElementById('plannedSP').value);
+            const completedSP = parseFloat(document.getElementById('completedSP').value);
+            
+            // Input validation
+            if (currentDay < 1) {
+                alert('Current day must be >= 1');
+                return;
+            }
+            if (currentDay > sprintLength) {
+                alert('Current day cannot exceed sprint length');
+                return;
+            }
+            if (sprintLength < 1) {
+                alert('Sprint length must be >= 1');
+                return;
+            }
+            
+            // Warning about limited history
+            const n = velocityHistory.length;
+            let warningMessage = '';
+            if (n < 3) {
+                warningMessage = '⚠️ Warning: History contains fewer than 3 sprints. Forecast may be unreliable. Add more data for accurate estimates.\n\n';
+            } else if (n < 5) {
+                warningMessage = '⚠️ Warning: For more reliable forecasts, a minimum of 5-8 sprints of history is recommended.\n\n';
+            }
+            
+            // Historical statistics (V_i already in SP/sprint)
+            const vAvg = velocityHistory.reduce((a, b) => a + b, 0) / n;
+            
+            const variance = velocityHistory.reduce((sum, v) => sum + Math.pow(v - vAvg, 2), 0) / (n - 1);
+            const s = Math.sqrt(variance);
+            
+            // Current velocity (SP/day)
+            const vDay = completedSP / currentDay;
+            
+            // Forecast based on current pace
+            const forecastCurrent = vDay * sprintLength;
+            
+            // Forecast based on history
+            const forecastHist = vAvg;
+            
+            // Mixed forecast (recommended)
+            const w = currentDay / sprintLength;
+            const forecastMixed = w * forecastCurrent + (1 - w) * forecastHist;
+            
+            // t-value for 95% prediction interval
+            // For small samples, use larger values
+            let tValue;
+            if (n < 3) {
+                tValue = 4.3; // very small sample
+            } else if (n < 5) {
+                tValue = 2.8;
+            } else if (n < 10) {
+                tValue = 2.3;
+            } else if (n < 30) {
+                tValue = 2.0;
+            } else {
+                tValue = 1.96;
+            }
+            
+            // 95% prediction interval (PI) for next sprint
+            const piWidth = tValue * s * Math.sqrt(1 + 1/n);
+            const piLower = vAvg - piWidth;
+            const piUpper = vAvg + piWidth;
+            
+            // Deviation from plan (positive = falling behind)
+            const deviation = plannedSP - forecastMixed;
+            
+            // Update UI with one decimal place
+            document.getElementById('avgVelocity').textContent = vAvg.toFixed(1);
+            document.getElementById('stdDev').textContent = s.toFixed(1);
+            document.getElementById('currentVelocity').textContent = vDay.toFixed(1);
+            document.getElementById('forecastCurrent').textContent = forecastCurrent.toFixed(1);
+            document.getElementById('forecastHist').textContent = forecastHist.toFixed(1);
+            document.getElementById('forecastMixed').textContent = forecastMixed.toFixed(1);
+            document.getElementById('piLower').textContent = piLower.toFixed(1);
+            document.getElementById('piUpper').textContent = piUpper.toFixed(1);
+            document.getElementById('deviation').textContent = deviation.toFixed(1);
+            document.getElementById('weight').textContent = (w * 100).toFixed(0) + '%';
+            
+            const riskIndicator = document.getElementById('riskIndicator');
+            const recommendationContent = document.getElementById('recommendationContent');
+            
+            // Additional information about reliability
+            const reliabilityNote = n < 5 
+                ? `<p style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <strong>⚠️ Limited Reliability:</strong> History contains only ${n} sprint${n === 1 ? '' : 's'}. 
+                    PI interval is widened (t=${tValue.toFixed(1)}) to account for uncertainty.
+                   </p>`
+                : '';
+            
+            // Risk assessment based on deviation
+            if (deviation > 10) {
+                riskIndicator.className = 'risk-indicator risk-high';
+                riskIndicator.innerHTML = '🔴 HIGH RISK OF DELAY<br><small>Deviation > 10 SP (falling behind by ' + deviation.toFixed(1) + ' SP)</small>';
+                recommendationContent.innerHTML = `
+                    ${warningMessage ? '<div class="recommendation" style="background: #fff3cd; border-left: 4px solid #ffc107;"><p>' + warningMessage.trim() + '</p></div>' : ''}
+                    <div class="recommendation">
+                        <h4>⚠️ Critical Situation - Immediate Actions Required:</h4>
+                        <ul>
+                            <li><strong>Review sprint plan:</strong> reduce scope by ${Math.abs(deviation).toFixed(1)} SP or more</li>
+                            <li><strong>Add resources:</strong> pair programming, help from other teams</li>
+                            <li><strong>Daily meetings:</strong> focus on removing blockers and obstacles</li>
+                            <li><strong>Reprioritize:</strong> focus on highest-value tasks</li>
+                            <li><strong>Root cause analysis:</strong> conduct retrospective to identify problems</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Forecasts:</strong> Current pace ${forecastCurrent.toFixed(1)} SP, history ${forecastHist.toFixed(1)} SP → mixed ${forecastMixed.toFixed(1)} SP (plan: ${plannedSP} SP)</p>
+                        <p style="margin-top: 10px;"><strong>95% PI (history):</strong> [${piLower.toFixed(1)}; ${piUpper.toFixed(1)}] SP</p>
+                    </div>
+                    ${reliabilityNote}
+                `;
+            } else if (deviation >= 5 && deviation <= 10) {
+                riskIndicator.className = 'risk-indicator risk-medium';
+                riskIndicator.innerHTML = '🟡 MEDIUM RISK<br><small>5 SP ≤ Deviation ≤ 10 SP (falling behind by ' + deviation.toFixed(1) + ' SP)</small>';
+                recommendationContent.innerHTML = `
+                    ${warningMessage ? '<div class="recommendation" style="background: #fff3cd; border-left: 4px solid #ffc107;"><p>' + warningMessage.trim() + '</p></div>' : ''}
+                    <div class="recommendation">
+                        <h4>⚠️ Early Warning Signs - Recommended Actions:</h4>
+                        <ul>
+                            <li><strong>Root cause analysis:</strong> analyze reasons for delays in daily stand-up</li>
+                            <li><strong>Remove blockers:</strong> check for technical or organizational obstacles</li>
+                            <li><strong>Improve communication:</strong> strengthen team interaction with Product Owner</li>
+                            <li><strong>Redistribute:</strong> consider redistributing tasks among team members</li>
+                            <li><strong>Daily monitoring:</strong> track progress every day</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Forecasts:</strong> Current pace ${forecastCurrent.toFixed(1)} SP, history ${forecastHist.toFixed(1)} SP → mixed ${forecastMixed.toFixed(1)} SP (plan: ${plannedSP} SP)</p>
+                        <p style="margin-top: 10px;"><strong>95% PI (history):</strong> [${piLower.toFixed(1)}; ${piUpper.toFixed(1)}] SP</p>
+                    </div>
+                    ${reliabilityNote}
+                `;
+            } else if (deviation >= 0 && deviation < 5) {
+                riskIndicator.className = 'risk-indicator risk-low';
+                riskIndicator.innerHTML = '🟢 LOW RISK<br><small>0 ≤ Deviation < 5 SP (minor lag of ' + deviation.toFixed(1) + ' SP)</small>';
+                recommendationContent.innerHTML = `
+                    ${warningMessage ? '<div class="recommendation" style="background: #fff3cd; border-left: 4px solid #ffc107;"><p>' + warningMessage.trim() + '</p></div>' : ''}
+                    <div class="recommendation">
+                        <h4>✅ Sprint Is Progressing Close to Plan:</h4>
+                        <ul>
+                            <li><strong>Maintain pace:</strong> continue work in current mode</li>
+                            <li><strong>Regular ceremonies:</strong> don't skip daily stand-ups and other meetings</li>
+                            <li><strong>Stable workflow:</strong> focus on maintaining productivity</li>
+                            <li><strong>Team motivation:</strong> encourage maintaining work rhythm</li>
+                            <li><strong>Monitoring:</strong> watch for potential risks</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Forecasts:</strong> Current pace ${forecastCurrent.toFixed(1)} SP, history ${forecastHist.toFixed(1)} SP → mixed ${forecastMixed.toFixed(1)} SP (plan: ${plannedSP} SP)</p>
+                        <p style="margin-top: 10px;"><strong>95% PI (history):</strong> [${piLower.toFixed(1)}; ${piUpper.toFixed(1)}] SP</p>
+                    </div>
+                    ${reliabilityNote}
+                `;
+            } else {
+                riskIndicator.className = 'risk-indicator risk-low';
+                riskIndicator.innerHTML = '🟢 AHEAD OF SCHEDULE<br><small>Deviation < 0 (ahead by ' + Math.abs(deviation).toFixed(1) + ' SP)</small>';
+                recommendationContent.innerHTML = `
+                    ${warningMessage ? '<div class="recommendation" style="background: #fff3cd; border-left: 4px solid #ffc107;"><p>' + warningMessage.trim() + '</p></div>' : ''}
+                    <div class="recommendation">
+                        <h4>🎉 Excellent Results - Team Is Ahead of Plan!</h4>
+                        <ul>
+                            <li><strong>Validate estimates:</strong> ensure tasks were not underestimated</li>
+                            <li><strong>Analyze distribution:</strong> is progress evenly distributed throughout the sprint?</li>
+                            <li><strong>Additional tasks:</strong> consider taking new stories from backlog</li>
+                            <li><strong>Technical debt:</strong> use time for refactoring and improvements</li>
+                            <li><strong>Celebrate success:</strong> praise the team for good results</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Forecasts:</strong> Current pace ${forecastCurrent.toFixed(1)} SP, history ${forecastHist.toFixed(1)} SP → mixed ${forecastMixed.toFixed(1)} SP (plan: ${plannedSP} SP)</p>
+                        <p style="margin-top: 10px;"><strong>95% PI (history):</strong> [${piLower.toFixed(1)}; ${piUpper.toFixed(1)}] SP</p>
+                    </div>
+                    ${reliabilityNote}
+                `;
+            }
+            
+            showTab('results');
+        }
+        
+        renderVelocityTable();
+    </script>
+</body>
+</html>
