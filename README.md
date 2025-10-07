@@ -17,8 +17,7 @@ A web-based Decision Support System (DSS) for predicting sprint delay risks in S
 
 ## 🚀 Live Demo
 
-**Try it now:** [[https://[olehyasinetskyi-debug].github.io/scrum-dss-prototype](https://[your-username].github.io/scrum-dss-prototype)](https://olehyasinetskyi-debug.github.io/scrum-dss-prototype/
-)
+**Try it now:** https://olehyasinetskyi-debug.github.io/scrum-dss-prototype/
 
 ## 📖 How to Use
 
